@@ -15,10 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -36,11 +38,13 @@ jobs:
             echo "No new career or leadership videos found."
           else
             git add dist/recent-videos.js
-            git commit -m "chore: refresh Ethan Evans video index"
+            git commit -m "chore: refresh Ethan Evans video index [skip ci]"
             git push
           fi
 
-      - name: Publish to GitHub Pages
+      - name: Publish with Quarto
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+          target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: quarto publish gh-pages --no-browser --no-prompt
