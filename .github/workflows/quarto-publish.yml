@@ -24,21 +24,33 @@ jobs:
         with:
           node-version: 22
 
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Install yt-dlp
+        run: python -m pip install --disable-pip-version-check "yt-dlp==2026.10.26"
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Refresh official YouTube feed
+      - name: Refresh public career archive
+        env:
+          YT_DLP_SLEEP_SECONDS: 3
+          YT_DLP_RETRIES: 3
+          YT_DLP_RETRY_DELAY_MS: 5000
         run: node scripts/refresh_videos.mjs
 
       - name: Commit refreshed video index
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- dist/recent-videos.js; then
-            echo "No new career or leadership videos found."
+          if [ -z "$(git status --short -- data/ethan-channel-videos.json dist/recent-videos.js)" ]; then
+            echo "No archive or generated-site changes found."
           else
-            git add dist/recent-videos.js
-            git commit -m "chore: refresh Ethan Evans video index [skip ci]"
+            git add data/ethan-channel-videos.json dist/recent-videos.js
+            git commit -m "chore: refresh Ethan Evans career archive [skip ci]"
             git push
           fi
 

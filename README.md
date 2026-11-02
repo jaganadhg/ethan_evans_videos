@@ -19,6 +19,15 @@ quarto render
 quarto publish gh-pages --no-browser
 ```
 
-The GitHub Action in `.github/workflows/quarto-publish.yml` can also be run manually or runs every Monday. It reads Ethan's official YouTube RSS feed, adds new career/leadership videos after deduplicating exact watch URLs, commits the generated `dist/recent-videos.js`, and republishes the site.
+Install `yt-dlp` for a local archive refresh:
+
+```bash
+python3 -m pip install "yt-dlp==2026.10.26"
+YT_DLP_SLEEP_SECONDS=3 node scripts/refresh_videos.mjs
+```
+
+The refresh is metadata-only: it crawls Ethan's public channel listing without downloading video or audio, stores normalized discoveries in `data/ethan-channel-videos.json`, and generates matching last-five-year career/leadership entries in `dist/recent-videos.js`. It keeps the raw cache so older discoveries remain available for future classifier changes.
+
+The GitHub Action in `.github/workflows/quarto-publish.yml` installs the pinned `yt-dlp` release, waits between requests, retries transient failures, runs every Monday or manually, commits both archive outputs, and republishes the site. GitHub-hosted requests can still be rate-limited by YouTube; if that happens, rerun later rather than increasing concurrency.
 
 The refresh step is intentionally conservative: new entries are marked `Fresh source` and include a review note in the UI.
