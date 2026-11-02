@@ -1,0 +1,18 @@
+---
+title: "The Evans Index"
+format:
+  html:
+    theme: none
+    toc: false
+    page-layout: full
+---
+
+<meta http-equiv="refresh" content="0; url=dist/index.html">
+
+<script>
+  window.location.replace("dist/index.html");
+</script>
+
+<p>
+  Opening <a href="dist/index.html">The Evans Index</a>…
+</p>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#11110f" />
+    <meta
+      name="description"
+      content="A careful shelf of career and leadership videos connected to Ethan Evans' recurring public recommendations."
+    />
+    <title>The Evans Index — A careful video shelf</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="The Evans Index home">
+          <span class="brand-mark" aria-hidden="true">EI</span>
+          <span class="brand-name">The Evans Index</span>
+        </a>
+        <div class="topbar-note"><span class="live-dot"></span> Public-source curation</div>
+        <a class="saved-link" href="#catalog" id="saved-link">
+          <span>Saved shelf</span><span class="count-pill" id="saved-count">0</span>
+        </a>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <div class="eyebrow-row">
+              <p class="eyebrow"><span class="eyebrow-index">01</span> The repeated signal</p>
+              <p class="eyebrow eyebrow-muted">Career / Leadership / 2026</p>
+            </div>
+            <h1 id="hero-title">Good advice gets <em>repeated.</em></h1>
+            <p class="hero-lede">
+              A small, considered shelf of videos connected to the ideas Ethan Evans returns to in his public talks, interviews, and resource list.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#catalog">Browse the shelf <span aria-hidden="true">↘</span></a>
+              <button class="button button-quiet" type="button" id="hero-saved-button">Open saved <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="hero-proof" aria-label="Curation proof points">
+              <div class="proof-item"><strong>10</strong><span>carefully<br />selected cards</span></div>
+              <div class="proof-line" aria-hidden="true"></div>
+              <div class="proof-item"><strong>03</strong><span>repeated<br />recommendation signals</span></div>
+              <div class="proof-line" aria-hidden="true"></div>
+              <div class="proof-item"><strong>00</strong><span>invented<br />endorsements</span></div>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-label="Three recurring recommendation themes">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="hero-card hero-card-main">
+              <div class="card-kicker">The signal index <span>↗</span></div>
+              <div class="hero-card-title">Think clearly.<br /><span>Lead humanely.</span></div>
+              <div class="hero-card-foot"><span class="mini-avatar">EE</span><span>Ethan Evans / public notes</span></div>
+            </div>
+            <div class="hero-float hero-float-top"><span class="float-number">01</span><span>Decision<br />quality</span></div>
+            <div class="hero-float hero-float-bottom"><span class="float-number">02</span><span>Human<br />dynamics</span></div>
+            <div class="hero-stamp">WATCH<br /><span>WITH INTENT</span></div>
+          </div>
+        </section>
+
+        <section class="signal-strip" aria-label="Recurring recommendation themes">
+          <div class="signal-label"><span class="signal-label-dot"></span> Recurring signals</div>
+          <div class="signal-theme"><span class="signal-number">01</span><span>Make better decisions</span></div>
+          <div class="signal-theme"><span class="signal-number">02</span><span>See the human first</span></div>
+          <div class="signal-theme"><span class="signal-number">03</span><span>Build career momentum</span></div>
+          <div class="signal-scroll" aria-hidden="true">Scroll to explore&nbsp; ↓</div>
+        </section>
+
+        <section class="content-section" id="featured-shelf" aria-labelledby="featured-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">The short list</p>
+              <h2 id="featured-title">The ideas that<br /><em>keep coming back.</em></h2>
+            </div>
+            <p class="section-note">A repeated signal is a theme that appears across Ethan’s official resources and multiple public conversations. Start here.</p>
+          </div>
+          <div class="featured-grid" id="featured-grid"></div>
+        </section>
+
+        <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
+          <div class="catalog-heading">
+            <div>
+              <p class="section-kicker">The full shelf</p>
+              <h2 id="catalog-title">Find your next <em>thread.</em></h2>
+            </div>
+            <div class="result-wrap"><span class="result-dot"></span><span id="result-count" aria-live="polite">10 videos</span></div>
+          </div>
+          <div class="catalog-tools">
+            <div class="topic-filters" id="topic-filters" role="group" aria-label="Filter by topic">
+              <button class="chip is-active" type="button" data-topic="all">All <span>10</span></button>
+              <button class="chip" type="button" data-topic="career-moves">Career moves <span>3</span></button>
+              <button class="chip" type="button" data-topic="decision-making">Decision-making <span>1</span></button>
+              <button class="chip" type="button" data-topic="managing-up">Managing up <span>2</span></button>
+              <button class="chip" type="button" data-topic="human-dynamics">Human dynamics <span>3</span></button>
+              <button class="chip" type="button" data-topic="execution">Execution <span>1</span></button>
+            </div>
+            <label class="search-box" for="search-input">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input id="search-input" type="search" placeholder="Search the shelf" autocomplete="off" />
+              <span class="search-key" aria-hidden="true">⌘ K</span>
+            </label>
+          </div>
+          <div class="video-grid" id="catalog-grid"></div>
+          <div class="empty-state" id="empty-state" hidden>
+            <span class="empty-mark">∅</span>
+            <h3>Nothing on this thread yet.</h3>
+            <p>Try another search or return to the full shelf.</p>
+            <button class="button button-dark" type="button" id="reset-filters">Reset filters</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-top">
+          <div class="footer-brand"><span class="brand-mark">EI</span><span>The Evans Index</span></div>
+          <p>Useful ideas, with receipts.</p>
+          <div class="footer-links"><a href="https://www.ethanevans.com/" target="_blank" rel="noreferrer">Ethan's site ↗</a><a href="https://www.youtube.com/channel/UC-BAdkBGjOIlccGLZ3jbLiA" target="_blank" rel="noreferrer">YouTube channel ↗</a></div>
+        </div>
+        <div class="footer-bottom">
+          <p>This is an independent editorial shelf, not affiliated with Ethan Evans or YouTube.</p>
+          <p>Sources are linked on every card. No view counts. No invented endorsements.</p>
+        </div>
+      </footer>
+    </div>
+
+    <dialog id="detail-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-inner">
+        <button class="dialog-close" type="button" id="dialog-close" aria-label="Close details">×</button>
+        <div class="dialog-art" id="dialog-art" aria-hidden="true"></div>
+        <div class="dialog-content">
+          <div class="dialog-meta"><span id="dialog-topic">Topic</span><span id="dialog-duration">Watch</span></div>
+          <p class="dialog-source" id="dialog-source">Source label</p>
+          <h2 id="dialog-title">Video title</h2>
+          <p class="dialog-deck" id="dialog-deck">Video description.</p>
+          <div class="dialog-note"><span class="note-mark">✳</span><p id="dialog-note">Why this is in the shelf.</p></div>
+          <div class="dialog-actions"><a class="button button-primary" id="dialog-watch" href="#" target="_blank" rel="noreferrer">Watch on YouTube ↗</a><button class="button button-dark" id="dialog-save" type="button">Save to shelf</button></div>
+          <a class="dialog-source-link" id="dialog-source-link" href="#" target="_blank" rel="noreferrer">Read the source note ↗</a>
+        </div>
+      </div>
+    </dialog>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

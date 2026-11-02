@@ -1,0 +1,17 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+  resources:
+    - "dist/**"
+
+website:
+  title: "The Evans Index"
+  description: "A careful, source-aware shelf of Ethan Evans videos."
+
+format:
+  html:
+    theme: none
+    toc: false
+    page-layout: full

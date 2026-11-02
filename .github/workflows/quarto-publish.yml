@@ -1,0 +1,46 @@
+name: Refresh and publish Quarto site
+
+on:
+  workflow_dispatch:
+  push:
+    branches: main
+  schedule:
+    - cron: "17 13 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Refresh official YouTube feed
+        run: node scripts/refresh_videos.mjs
+
+      - name: Commit refreshed video index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- dist/recent-videos.js; then
+            echo "No new career or leadership videos found."
+          else
+            git add dist/recent-videos.js
+            git commit -m "chore: refresh Ethan Evans video index"
+            git push
+          fi
+
+      - name: Publish to GitHub Pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: quarto publish gh-pages --no-browser --no-prompt
