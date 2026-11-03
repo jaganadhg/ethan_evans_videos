@@ -70,7 +70,7 @@ function cardMarkup(item, { featured = false } = {}) {
     <article class="video-card" data-open-id="${escapeHtml(item.id)}" tabindex="0" role="group" aria-label="Open details for ${escapeHtml(item.title)}">
       <div class="thumbnail ${accent}">
         <div class="thumbnail-art" aria-hidden="true"></div>
-        <div class="thumb-top"><span class="source-tag">${escapeHtml(source)}</span><span>${escapeHtml(item.duration)}</span></div>
+        <div class="thumb-top"><span class="source-tag">${escapeHtml(source)}</span><span>${escapeHtml(item.format ?? item.duration)}</span></div>
         <button class="save-button${isSaved ? ' is-saved' : ''}" type="button" data-save-id="${escapeHtml(item.id)}" aria-label="${isSaved ? 'Remove' : 'Save'} ${escapeHtml(item.title)}" aria-pressed="${isSaved}">${isSaved ? '★' : '☆'}</button>
         <span class="thumb-play" aria-hidden="true">↗</span>
         <div class="thumb-bottom">${escapeHtml(item.title)}</div>
@@ -149,7 +149,7 @@ function openDialog(id, trigger) {
   state.returnFocus = trigger;
   elements.dialogArt.className = `dialog-art thumb-${item.accent}`;
   elements.dialogTopic.textContent = item.topicLabel;
-  elements.dialogDuration.textContent = item.duration;
+  elements.dialogDuration.textContent = item.format ?? item.duration;
   elements.dialogSource.textContent = item.sourceLabel;
   elements.dialogTitle.textContent = item.title;
   elements.dialogDeck.textContent = item.deck;
