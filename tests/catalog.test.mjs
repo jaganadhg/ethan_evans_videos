@@ -17,7 +17,7 @@ test('search is case-insensitive across titles and source notes', () => {
 
 test('topic and saved filters compose without mutating the catalog', () => {
   const results = filterCatalog(catalog, {
-    topic: 'decision-making',
+    topic: 'decision-strategy',
     savedIds: new Set(['decisive']),
   });
 
@@ -50,8 +50,8 @@ test('topic counts include the all count and known topics', () => {
   const counts = getTopicCounts(catalog);
 
   assert.equal(counts.all, catalog.length);
-  assert.ok(counts['career-moves'] > 0);
-  assert.ok(counts['human-dynamics'] > 0);
+  assert.ok(counts['career-growth'] > 0);
+  assert.ok(counts['executive-presence'] > 0);
 });
 
 test('saved ids round-trip through a storage-like object', () => {

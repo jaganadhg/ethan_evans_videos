@@ -36,10 +36,18 @@ gh secret set YOUTUBE_API_KEY --repo jaganadhg/ethan_evans_videos
 The refresh reads public channel metadata through the channel uploads playlist;
 it does not access private, age-restricted, or members-only videos.
 
+Auto-discovered videos receive one primary topic—Career Growth & Promotion,
+Executive Presence & Visibility, Managing Up & Influence, Leadership & People
+Management, Communication & Difficult Conversations, AI-Era Work & Product
+Leadership, Decision-Making & Strategy, Personal Effectiveness & Resilience, or
+Career Transitions & Independent Work—plus optional tags and a format label.
+Classification uses the title first so repeated promotional biographies do not
+override the video's actual subject.
+
 The refresh is metadata-only: it crawls Ethan's public channel listing without downloading video or audio, stores normalized discoveries in `data/ethan-channel-videos.json`, and generates matching last-five-year career/leadership entries in `dist/recent-videos.js`. It keeps the raw cache so older discoveries remain available for future classifier changes.
 
 The GitHub Action in `.github/workflows/quarto-publish.yml` uses the API key,
 retries transient failures, runs every Monday or manually, commits both archive
 outputs, and republishes the site.
 
-The refresh step is intentionally conservative: new entries are marked `Fresh source` and include a review note in the UI.
+The refresh step is intentionally conservative: new entries are marked `Auto-discovered` and include a review note in the UI.

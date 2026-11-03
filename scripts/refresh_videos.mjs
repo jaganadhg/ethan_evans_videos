@@ -6,7 +6,7 @@ export const CHANNEL_ID = 'UC-BAdkBGjOIlccGLZ3jbLiA';
 export const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
 export const CHANNEL_URL = `https://www.youtube.com/channel/${CHANNEL_ID}`;
 export const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
-const careerPattern = /career|promotion|promot|manager|leadership|executive|decision|influence|stakeholder|senior|professional|workplace|work|job|amazon|ai/i;
+const careerPattern = /\b(career|manager|leadership|executive|decision|influence|stakeholder|senior|professional|workplace|work|job|amazon|ai|network\w*|product\w*|design|innovation|meaning)\b|\bpromot\w*\b|\btpm\b|constraints fuel innovation|assume best intentions|curb cut effect|9-enders/i;
 
 function decodeEntities(value) {
   return value
@@ -103,6 +103,58 @@ export function parseYouTubeApiItems(payload) {
     description: item?.snippet?.description,
     published: item?.contentDetails?.videoPublishedAt ?? item?.snippet?.publishedAt,
   })).filter(Boolean);
+}
+
+const topicRules = [
+  ['ai-product-leadership', 'AI-Era Work & Product Leadership', /\bai\b|ai[- ]native|agent|vibe[- ]cod|claude|automation|machine age|product (?:manager|management|skills|insights|director)|\btpm\b|spec engineering|\bevals?\b/i],
+  ['executive-presence', 'Executive Presence & Visibility', /executive presence|visibility|\bvisible\b|be heard|remembered|own the room|public speak|all[- ]hands|executive sponsorship/i],
+  ['managing-up', 'Managing Up & Influence', /managing up|stakeholder|skip[- ]level|\b1:1\b|one[- ]on[- ]one|buy[- ]in|sponsorship|\binfluence\b|career goals?[^.]{0,50}\bmanager\b|decode your manager/i],
+  ['career-transitions', 'Career Transitions & Independent Work', /leaving.*corporate|corporate.*job|entrepreneur|startup|founder|business idea|retirement|independent|consult|freelanc|venture capital/i],
+  ['career-growth', 'Career Growth & Promotion', /career|\bpromot\w*\b|senior|move up|stand out|early career|professional|resume|interview|scope|performance review/i],
+  ['leadership-management', 'Leadership & People Management', /new managers?|people manager|leadership|\bleader\b|\bteam\b|delegat|coach|mentor|high[- ]perform|culture of|manager/i],
+  ['communication', 'Communication & Difficult Conversations', /communicat|clarity|rambl|writing|\bwrite\b|difficult message|hard.*delicate|peer conflict|\bconflict\b|public speak|talk to executives|say you stink|emotional people|assume best intentions|\bfeedback\b/i],
+  ['decision-strategy', 'Decision-Making & Strategy', /decision|judg|strateg|priorit|trade[- ]off|operating principles|ownership|working backwards|rules, making exceptions|exec 1-pager|roadmap|metrics|hard deadline|constraints fuel innovation|curb cut effect/i],
+  ['personal-effectiveness', 'Personal Effectiveness & Resilience', /habit|productiv|focus|energy|imposter|confidence|mindset|boundar|resilien|motivat|unstuck|goals|peak performance|intensity|meaning of life|9-enders/i],
+];
+
+const tagRules = [
+  ['Promotion & advancement', /\bpromot\w*\b|senior leadership|move up|career growth|stand out/i],
+  ['Executive presence & visibility', /executive presence|visibility|\bvisible\b|be heard|remembered|own the room|public speak|all[- ]hands/i],
+  ['Managing up & stakeholders', /managing up|stakeholder|skip[- ]level|\b1:1\b|one[- ]on[- ]one|buy[- ]in|sponsorship|influence|manager/i],
+  ['AI & automation', /\bai\b|ai[- ]native|agent|vibe[- ]cod|claude|automation|machine age/i],
+  ['Product management', /product (?:manager|management|skills|insights)|ai[- ]native pm|spec engineering|agent owner|\bevals?\b/i],
+  ['Communication', /communicat|clarity|rambl|writing|\bwrite\b|public speak|talk to executives|difficult message/i],
+  ['Leadership & management', /leadership|\bleader\b|\bteam\b|manager|delegat|coach|mentor|high[- ]perform|culture/i],
+  ['Decision-making', /decision|judg|strateg|priorit|trade[- ]off|operating principles|ownership|working backwards|roadmap|metrics/i],
+  ['Design & innovation', /design|innovation|curb cut|creativ/i],
+  ['Compensation & negotiation', /salary|negotiat|paid more|counter offer|high paying/i],
+  ['Performance & feedback', /performance review|feedback|peer review|high standards/i],
+  ['Networking & sponsorship', /network|sponsor|mentor|relationship|connector/i],
+  ['Career transitions', /leaving.*corporate|corporate.*job|entrepreneur|startup|founder|business idea|retirement|independent|consult/i],
+];
+
+function classificationText(title, description = '') {
+  const leadDescription = String(description).split(/\n\s*-{3,}\s*/)[0];
+  return `${String(title)}\n${leadDescription}`;
+}
+
+export function classifyVideo(title, description = '') {
+  const titleText = String(title);
+  const text = classificationText(title, description);
+  const [topic, topicLabel] = topicRules.find(([, , pattern]) => pattern.test(titleText))
+    ?? topicRules.find(([, , pattern]) => pattern.test(text))
+    ?? ['career-growth', 'Career Growth & Promotion'];
+  const titleTags = tagRules
+    .filter(([, pattern]) => pattern.test(titleText))
+    .map(([label]) => label);
+  const tags = titleTags;
+  let format = 'Lesson';
+  if (/live demo|built live|real demo/i.test(text)) format = 'Live demo';
+  else if (/masterclass|workshop/i.test(text)) format = 'Masterclass';
+  else if (/trailer|\bclip\b/i.test(text)) format = 'Clip / trailer';
+  else if (/conversation|discussion|interview|\bama\b| with [A-Z]/i.test(text)) format = 'Conversation';
+
+  return { topic, topicLabel, tags, format };
 }
 
 export function mergeVideoArchive(existing, discovered) {
@@ -244,13 +296,6 @@ export async function refreshArchive({
   return { discoveredCount: discovered.length, archiveCount: merged.length, recentCount: recent.length };
 }
 
-function topicFor(title) {
-  if (/manager|managing up|stakeholder|promotion/i.test(title)) return ['managing-up', 'Managing up'];
-  if (/decision|decisive|judgment|influence|presence|communication/i.test(title)) return ['human-dynamics', 'Human dynamics'];
-  if (/execution|deliver|ship|ai/i.test(title)) return ['execution', 'Execution'];
-  return ['career-moves', 'Career moves'];
-}
-
 function accentFor(id) {
   return ['lime', 'coral', 'blue', 'violet', 'amber', 'green', 'rose', 'teal', 'orange', 'plum'][
     [...id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 10
@@ -274,19 +319,21 @@ export function selectCareerVideos(entries, {
       const published = new Date(entry.published);
       return published >= cutoff && published <= upperBound;
     })
-    .filter((entry) => careerPattern.test(`${entry.title} ${entry.description}`))
+    .filter((entry) => careerPattern.test(classificationText(entry.title, entry.description)))
     .filter((entry) => !existingUrls.has(entry.watchUrl))
     .sort((left, right) => new Date(right.published).valueOf() - new Date(left.published).valueOf())
     .slice(0, limit)
     .map((entry) => {
-      const [topic, topicLabel] = topicFor(entry.title);
+      const classification = classifyVideo(entry.title, entry.description);
       return {
         id: `fresh-${entry.id}`,
         title: entry.title,
         deck: 'A new public video from Ethan Evans.',
-        topic,
-        topicLabel,
-        sourceLabel: 'Fresh source',
+        topic: classification.topic,
+        topicLabel: classification.topicLabel,
+        tags: classification.tags,
+        format: classification.format,
+        sourceLabel: 'Auto-discovered',
         sourceNote: 'Auto-discovered from Ethan’s public YouTube channel with YouTube Data API; review before publishing.',
         sourceUrl: CHANNEL_URL,
         watchUrl: entry.watchUrl,

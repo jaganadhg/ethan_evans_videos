@@ -6,6 +6,7 @@ import path from 'node:path';
 
 import {
   buildYouTubeApiUrl,
+  classifyVideo,
   mergeVideoArchive,
   parseYouTubeApiChannel,
   parseYouTubeApiItems,
@@ -57,9 +58,33 @@ test('selects career and leadership videos while skipping duplicates and unrelat
   });
 
   assert.deepEqual(selected.map((item) => item.id), ['fresh-abc123_XY']);
-  assert.equal(selected[0].sourceLabel, 'Fresh source');
+  assert.equal(selected[0].sourceLabel, 'Auto-discovered');
   assert.match(selected[0].sourceNote, /YouTube Data API/);
-  assert.equal(selected[0].topic, 'managing-up');
+  assert.equal(selected[0].topic, 'career-growth');
+});
+
+test('classifies representative videos into precise primary topics and secondary tags', () => {
+  const cases = [
+    ['Get Promoted into Senior Leadership Roles', 'career-growth', 'Career Growth & Promotion'],
+    ['New Rules of Executive Visibility: Be Seen, Remembered, & Invited', 'executive-presence', 'Executive Presence & Visibility'],
+    ['Make Your Career Goals Clear to Your Manager', 'managing-up', 'Managing Up & Influence'],
+    ['60% of new managers fail within 18 months', 'leadership-management', 'Leadership & People Management'],
+    ['Write for Clarity & Marinate on Ideas', 'communication', 'Communication & Difficult Conversations'],
+    ['Vibe-coding the Agent Owner Spec: for AI-native PMs', 'ai-product-leadership', 'AI-Era Work & Product Leadership'],
+    ['Breaking Rules, Making Exceptions, Good Judgement', 'decision-strategy', 'Decision-Making & Strategy'],
+    ['Fighting Imposter Syndrome', 'personal-effectiveness', 'Personal Effectiveness & Resilience'],
+    ['Networking Rule of 3', 'career-growth', 'Career Growth & Promotion'],
+    ['Constraints Fuel Innovation', 'decision-strategy', 'Decision-Making & Strategy'],
+  ];
+
+  for (const [title, topic, topicLabel] of cases) {
+    const result = classifyVideo(title);
+    assert.equal(result.topic, topic, title);
+    assert.equal(result.topicLabel, topicLabel, title);
+  }
+
+  assert.ok(classifyVideo('Hardball Negotiations #salary').tags.includes('Compensation & negotiation'));
+  assert.equal(classifyVideo('Vibe-coding the Agent Owner Spec (live demo)').format, 'Live demo');
 });
 
 test('renders a safe JavaScript module for the browser catalog', () => {
