@@ -26,6 +26,19 @@ python3 -m pip install "yt-dlp==2026.10.26"
 YT_DLP_SLEEP_SECONDS=3 node scripts/refresh_videos.mjs
 ```
 
+If YouTube asks yt-dlp to sign in, provide a fresh Netscape-format YouTube cookie
+file without committing it:
+
+```bash
+YT_DLP_COOKIES_FILE=/secure/path/youtube-cookies.txt node scripts/refresh_videos.mjs
+```
+
+For a local browser profile, use `YT_DLP_COOKIES_FROM_BROWSER=firefox` (or
+`chrome`) instead. The GitHub Action reads the optional `YOUTUBE_COOKIES`
+repository secret into a temporary file and passes it to yt-dlp. Cookies are
+sensitive and expire, so refresh the secret from a current browser session when
+YouTube challenges the runner again.
+
 The refresh is metadata-only: it crawls Ethan's public channel listing without downloading video or audio, stores normalized discoveries in `data/ethan-channel-videos.json`, and generates matching last-five-year career/leadership entries in `dist/recent-videos.js`. It keeps the raw cache so older discoveries remain available for future classifier changes.
 
 The GitHub Action in `.github/workflows/quarto-publish.yml` installs the pinned `yt-dlp` release, waits between requests, retries transient failures, runs every Monday or manually, commits both archive outputs, and republishes the site. GitHub-hosted requests can still be rate-limited by YouTube; if that happens, rerun later rather than increasing concurrency.

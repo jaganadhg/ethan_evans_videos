@@ -178,6 +178,47 @@ test('builds a delayed metadata-only yt-dlp command', () => {
   ]);
 });
 
+test('passes a configured cookie file to yt-dlp without changing metadata-only behavior', () => {
+  const args = buildYtDlpArgs({
+    channelUrl: 'https://www.youtube.com/channel/example/videos',
+    sleepSeconds: 3,
+    cookiesFile: '/tmp/youtube-cookies.txt',
+  });
+
+  assert.deepEqual(args, [
+    '--dump-single-json',
+    '--skip-download',
+    '--no-flat-playlist',
+    '--no-warnings',
+    '--ignore-errors',
+    '--sleep-requests',
+    '3',
+    '--cookies',
+    '/tmp/youtube-cookies.txt',
+    'https://www.youtube.com/channel/example/videos',
+  ]);
+});
+
+test('supports browser cookie extraction for local refreshes', () => {
+  const args = buildYtDlpArgs({
+    channelUrl: 'https://www.youtube.com/channel/example/videos',
+    cookiesFromBrowser: 'firefox',
+  });
+
+  assert.deepEqual(args.slice(-3), [
+    '--cookies-from-browser',
+    'firefox',
+    'https://www.youtube.com/channel/example/videos',
+  ]);
+});
+
+test('rejects configuring both cookie sources', () => {
+  assert.throws(
+    () => buildYtDlpArgs({ cookiesFile: '/tmp/cookies.txt', cookiesFromBrowser: 'firefox' }),
+    /choose either cookiesFile or cookiesFromBrowser/,
+  );
+});
+
 test('refreshes the archive through a fake yt-dlp executable without downloading media', async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ethan-videos-'));
   const executable = path.join(root, 'fake-yt-dlp');

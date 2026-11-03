@@ -99,8 +99,17 @@ export function mergeVideoArchive(existing, discovered) {
   ));
 }
 
-export function buildYtDlpArgs({ channelUrl = CHANNEL_VIDEOS_URL, sleepSeconds = 3 } = {}) {
-  return [
+export function buildYtDlpArgs({
+  channelUrl = CHANNEL_VIDEOS_URL,
+  sleepSeconds = 3,
+  cookiesFile = process.env.YT_DLP_COOKIES_FILE,
+  cookiesFromBrowser = process.env.YT_DLP_COOKIES_FROM_BROWSER,
+} = {}) {
+  if (cookiesFile && cookiesFromBrowser) {
+    throw new Error('choose either cookiesFile or cookiesFromBrowser, not both');
+  }
+
+  const args = [
     '--dump-single-json',
     '--skip-download',
     '--no-flat-playlist',
@@ -108,8 +117,12 @@ export function buildYtDlpArgs({ channelUrl = CHANNEL_VIDEOS_URL, sleepSeconds =
     '--ignore-errors',
     '--sleep-requests',
     String(sleepSeconds),
-    channelUrl,
   ];
+
+  if (cookiesFile) args.push('--cookies', cookiesFile);
+  if (cookiesFromBrowser) args.push('--cookies-from-browser', cookiesFromBrowser);
+  args.push(channelUrl);
+  return args;
 }
 
 function readArchive(filePath) {
@@ -138,10 +151,12 @@ export async function runYtDlp({
   executable = process.env.YT_DLP_BIN ?? 'yt-dlp',
   channelUrl = CHANNEL_VIDEOS_URL,
   sleepSeconds = Math.max(2, numericEnv('YT_DLP_SLEEP_SECONDS', 3)),
+  cookiesFile = process.env.YT_DLP_COOKIES_FILE,
+  cookiesFromBrowser = process.env.YT_DLP_COOKIES_FROM_BROWSER,
 } = {}) {
   const { stdout } = await execFileAsync(
     executable,
-    buildYtDlpArgs({ channelUrl, sleepSeconds }),
+    buildYtDlpArgs({ channelUrl, sleepSeconds, cookiesFile, cookiesFromBrowser }),
     { maxBuffer: 64 * 1024 * 1024 },
   );
   const records = parseYtDlpOutput(stdout);
@@ -174,6 +189,8 @@ export async function refreshArchive({
   executable = process.env.YT_DLP_BIN ?? 'yt-dlp',
   channelUrl = CHANNEL_VIDEOS_URL,
   sleepSeconds = Math.max(2, numericEnv('YT_DLP_SLEEP_SECONDS', 3)),
+  cookiesFile = process.env.YT_DLP_COOKIES_FILE,
+  cookiesFromBrowser = process.env.YT_DLP_COOKIES_FROM_BROWSER,
   retries = Math.max(1, Math.floor(numericEnv('YT_DLP_RETRIES', 3))),
   retryDelayMs = Math.max(0, numericEnv('YT_DLP_RETRY_DELAY_MS', 2000)),
   existingUrls = new Set(),
@@ -185,6 +202,8 @@ export async function refreshArchive({
     executable,
     channelUrl,
     sleepSeconds,
+    cookiesFile,
+    cookiesFromBrowser,
     retries,
     retryDelayMs,
   });

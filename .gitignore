@@ -2,3 +2,7 @@
 /.quarto/
 
 **/*.quarto_ipynb
+
+# Local YouTube authentication exports must never be committed.
+youtube-cookies.txt
+*.cookies.txt
