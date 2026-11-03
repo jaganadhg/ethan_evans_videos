@@ -1,5 +1,7 @@
 # Ethan Evans Career Video Archive Design
 
+> Superseded by `2026-11-02-youtube-data-api-career-archive-design.md`.
+
 ## Intent
 
 Expand the weekly refresh from the channel's small RSS window into a persistent archive of public Ethan Evans channel videos from the last five years, while showing only videos related to career, leadership, promotion, and workplace topics.

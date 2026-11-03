@@ -1,5 +1,7 @@
 # Ethan Evans yt-dlp Career Archive Implementation Plan
 
+> Superseded by `2026-11-02-youtube-data-api-career-archive.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Replace the limited RSS refresh with a delayed, cached `yt-dlp` crawl that publishes all matching public Ethan Evans channel videos from the rolling five-year window.

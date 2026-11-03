@@ -5,12 +5,14 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {
-  buildYtDlpArgs,
+  buildYouTubeApiUrl,
   mergeVideoArchive,
+  parseYouTubeApiChannel,
+  parseYouTubeApiItems,
   parseYouTubeFeed,
-  parseYtDlpOutput,
   refreshArchive,
   renderRecentVideosModule,
+  runYouTubeApi,
   selectCareerVideos,
 } from '../scripts/refresh_videos.mjs';
 
@@ -56,7 +58,7 @@ test('selects career and leadership videos while skipping duplicates and unrelat
 
   assert.deepEqual(selected.map((item) => item.id), ['fresh-abc123_XY']);
   assert.equal(selected[0].sourceLabel, 'Fresh source');
-  assert.match(selected[0].sourceNote, /yt-dlp/);
+  assert.match(selected[0].sourceNote, /YouTube Data API/);
   assert.equal(selected[0].topic, 'managing-up');
 });
 
@@ -82,29 +84,91 @@ test('renders a safe JavaScript module for the browser catalog', () => {
   assert.match(moduleText, /abc123_XY/);
 });
 
-test('normalizes yt-dlp playlist JSON into exact watch records', () => {
-  const entries = parseYtDlpOutput(JSON.stringify({
-    entries: [
-      {
-        id: 'yt-dlp-1',
+test('builds encoded YouTube Data API URLs with the API key', () => {
+  const url = buildYouTubeApiUrl('channels', {
+    part: 'contentDetails',
+    id: 'UC example',
+  }, 'test-key');
+
+  assert.equal(
+    url,
+    'https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=UC+example&key=test-key',
+  );
+});
+
+test('parses the channel uploads playlist id from the Data API', () => {
+  assert.equal(parseYouTubeApiChannel({
+    items: [{ contentDetails: { relatedPlaylists: { uploads: 'uploads-1' } } }],
+  }), 'uploads-1');
+});
+
+test('normalizes YouTube Data API playlist items into exact watch records', () => {
+  const entries = parseYouTubeApiItems({
+    items: [{
+      snippet: {
         title: 'Leadership in Practice',
         description: 'A useful conversation about leading teams.',
-        upload_date: '20251010',
-        webpage_url: 'https://www.youtube.com/watch?v=yt-dlp-1',
+        publishedAt: '2025-10-10T00:00:00.000Z',
+        resourceId: { videoId: 'youtube-api-1' },
       },
-      null,
-    ],
-  }));
+      contentDetails: { videoPublishedAt: '2025-10-09T00:00:00.000Z' },
+    }, null],
+  });
 
   assert.deepEqual(entries, [
     {
-      id: 'yt-dlp-1',
+      id: 'youtube-api-1',
       title: 'Leadership in Practice',
       description: 'A useful conversation about leading teams.',
-      published: '2025-10-10T00:00:00.000Z',
-      watchUrl: 'https://www.youtube.com/watch?v=yt-dlp-1',
+      published: '2025-10-09T00:00:00.000Z',
+      watchUrl: 'https://www.youtube.com/watch?v=youtube-api-1',
     },
   ]);
+});
+
+test('fetches all YouTube Data API pages for a channel', async () => {
+  const requestedUrls = [];
+  const fetchImpl = async (url) => {
+    requestedUrls.push(url);
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith('/channels')) {
+      return {
+        ok: true,
+        json: async () => ({
+          items: [{ contentDetails: { relatedPlaylists: { uploads: 'uploads-1' } } }],
+        }),
+      };
+    }
+
+    const pageToken = parsed.searchParams.get('pageToken');
+    return {
+      ok: true,
+      json: async () => ({
+        items: [{
+          snippet: {
+            title: pageToken ? 'Second leadership lesson' : 'First leadership lesson',
+            description: 'How to lead teams.',
+            publishedAt: '2025-10-10T00:00:00.000Z',
+            resourceId: { videoId: pageToken ? 'video-2' : 'video-1' },
+          },
+        }],
+        ...(pageToken ? {} : { nextPageToken: 'page-2' }),
+      }),
+    };
+  };
+
+  const entries = await runYouTubeApi({ apiKey: 'test-key', fetchImpl });
+
+  assert.deepEqual(entries.map((entry) => entry.id), ['video-1', 'video-2']);
+  assert.equal(requestedUrls.length, 3);
+  assert.match(requestedUrls[2], /pageToken=page-2/);
+});
+
+test('requires an API key before making YouTube requests', async () => {
+  await assert.rejects(
+    runYouTubeApi({ apiKey: '', fetchImpl: async () => { throw new Error('unexpected request'); } }),
+    /YOUTUBE_API_KEY is required/,
+  );
 });
 
 test('keeps only relevant videos published within the rolling five-year window', () => {
@@ -160,87 +224,34 @@ test('does not cap the filtered archive at twelve videos', () => {
   assert.equal(selectCareerVideos(entries, { now: '2026-11-02T00:00:00.000Z' }).length, 13);
 });
 
-test('builds a delayed metadata-only yt-dlp command', () => {
-  const args = buildYtDlpArgs({
-    channelUrl: 'https://www.youtube.com/channel/example/videos',
-    sleepSeconds: 3,
-  });
-
-  assert.deepEqual(args, [
-    '--dump-single-json',
-    '--skip-download',
-    '--no-flat-playlist',
-    '--no-warnings',
-    '--ignore-errors',
-    '--sleep-requests',
-    '3',
-    'https://www.youtube.com/channel/example/videos',
-  ]);
-});
-
-test('passes a configured cookie file to yt-dlp without changing metadata-only behavior', () => {
-  const args = buildYtDlpArgs({
-    channelUrl: 'https://www.youtube.com/channel/example/videos',
-    sleepSeconds: 3,
-    cookiesFile: '/tmp/youtube-cookies.txt',
-  });
-
-  assert.deepEqual(args, [
-    '--dump-single-json',
-    '--skip-download',
-    '--no-flat-playlist',
-    '--no-warnings',
-    '--ignore-errors',
-    '--sleep-requests',
-    '3',
-    '--cookies',
-    '/tmp/youtube-cookies.txt',
-    'https://www.youtube.com/channel/example/videos',
-  ]);
-});
-
-test('supports browser cookie extraction for local refreshes', () => {
-  const args = buildYtDlpArgs({
-    channelUrl: 'https://www.youtube.com/channel/example/videos',
-    cookiesFromBrowser: 'firefox',
-  });
-
-  assert.deepEqual(args.slice(-3), [
-    '--cookies-from-browser',
-    'firefox',
-    'https://www.youtube.com/channel/example/videos',
-  ]);
-});
-
-test('rejects configuring both cookie sources', () => {
-  assert.throws(
-    () => buildYtDlpArgs({ cookiesFile: '/tmp/cookies.txt', cookiesFromBrowser: 'firefox' }),
-    /choose either cookiesFile or cookiesFromBrowser/,
-  );
-});
-
-test('refreshes the archive through a fake yt-dlp executable without downloading media', async () => {
+test('refreshes the archive through a fake YouTube Data API without downloading media', async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ethan-videos-'));
-  const executable = path.join(root, 'fake-yt-dlp');
   const archivePath = path.join(root, 'ethan-channel-videos.json');
   const recentPath = path.join(root, 'recent-videos.js');
-  const output = JSON.stringify({
-    entries: [{
-      id: 'fake-video',
-      title: 'Executive Presence for Career Growth',
-      description: 'How to earn promotion opportunities.',
-      upload_date: '20251010',
-    }],
-  });
-
-  fs.writeFileSync(executable, `#!/bin/sh\nprintf '%s' '${output}'\n`);
-  fs.chmodSync(executable, 0o755);
+  const fetchImpl = async (url) => {
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith('/channels')) {
+      return { ok: true, json: async () => ({
+        items: [{ contentDetails: { relatedPlaylists: { uploads: 'uploads-1' } } }],
+      }) };
+    }
+    return { ok: true, json: async () => ({
+      items: [{
+        snippet: {
+          title: 'Executive Presence for Career Growth',
+          description: 'How to earn promotion opportunities.',
+          publishedAt: '2025-10-10T00:00:00.000Z',
+          resourceId: { videoId: 'fake-video' },
+        },
+      }],
+    }) };
+  };
 
   await refreshArchive({
     archivePath,
     recentPath,
-    executable,
-    sleepSeconds: 2,
+    apiKey: 'test-key',
+    fetchImpl,
     retryDelayMs: 0,
     now: '2026-11-02T00:00:00.000Z',
   });
@@ -249,22 +260,26 @@ test('refreshes the archive through a fake yt-dlp executable without downloading
   assert.match(fs.readFileSync(recentPath, 'utf8'), /fake-video/);
 });
 
-test('does not replace the prior archive when yt-dlp fails', async () => {
+test('does not replace the prior archive when the YouTube API fails', async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ethan-videos-failure-'));
-  const executable = path.join(root, 'failing-yt-dlp');
   const archivePath = path.join(root, 'ethan-channel-videos.json');
   const recentPath = path.join(root, 'recent-videos.js');
   const previousArchive = '[{"id":"previous","title":"Previous","published":"2025-01-01T00:00:00.000Z","watchUrl":"https://www.youtube.com/watch?v=previous"}]';
   const previousRecent = 'export const recentVideos = [];\n';
 
-  fs.writeFileSync(executable, '#!/bin/sh\nexit 1\n');
-  fs.chmodSync(executable, 0o755);
   fs.writeFileSync(archivePath, previousArchive);
   fs.writeFileSync(recentPath, previousRecent);
 
   await assert.rejects(
-    refreshArchive({ archivePath, recentPath, executable, retries: 2, retryDelayMs: 0 }),
-    /yt-dlp failed after 2 attempts/,
+    refreshArchive({
+      archivePath,
+      recentPath,
+      apiKey: 'test-key',
+      fetchImpl: async () => { throw new Error('API unavailable'); },
+      retries: 2,
+      retryDelayMs: 0,
+    }),
+    /YouTube API failed after 2 attempts/,
   );
 
   assert.equal(fs.readFileSync(archivePath, 'utf8'), previousArchive);

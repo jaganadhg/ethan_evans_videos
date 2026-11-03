@@ -1,15 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const CHANNEL_ID = 'UC-BAdkBGjOIlccGLZ3jbLiA';
 export const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
 export const CHANNEL_URL = `https://www.youtube.com/channel/${CHANNEL_ID}`;
-export const CHANNEL_VIDEOS_URL = `${CHANNEL_URL}/videos`;
-
-const execFileAsync = promisify(execFile);
+export const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const careerPattern = /career|promotion|promot|manager|leadership|executive|decision|influence|stakeholder|senior|professional|workplace|work|job|amazon|ai/i;
 
 function decodeEntities(value) {
@@ -81,10 +77,32 @@ function normalizeArchiveRecord(entry) {
   };
 }
 
-export function parseYtDlpOutput(output) {
-  const parsed = typeof output === 'string' ? JSON.parse(output) : output;
-  const entries = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.entries) ? parsed.entries : [parsed];
-  return entries.map(normalizeArchiveRecord).filter(Boolean);
+export function buildYouTubeApiUrl(resource, params, apiKey, apiBaseUrl = YOUTUBE_API_BASE_URL) {
+  const url = new URL(`${apiBaseUrl.replace(/\/$/, '')}/${resource}`);
+  for (const [name, value] of Object.entries({ ...params, key: apiKey })) {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(name, String(value));
+    }
+  }
+  return url.href;
+}
+
+export function parseYouTubeApiChannel(payload) {
+  const uploads = payload?.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+  if (typeof uploads !== 'string' || !uploads.trim()) {
+    throw new Error('YouTube API returned no uploads playlist for the channel');
+  }
+  return uploads.trim();
+}
+
+export function parseYouTubeApiItems(payload) {
+  const items = Array.isArray(payload?.items) ? payload.items : [];
+  return items.map((item) => normalizeArchiveRecord({
+    id: item?.contentDetails?.videoId ?? item?.snippet?.resourceId?.videoId,
+    title: item?.snippet?.title,
+    description: item?.snippet?.description,
+    published: item?.contentDetails?.videoPublishedAt ?? item?.snippet?.publishedAt,
+  })).filter(Boolean);
 }
 
 export function mergeVideoArchive(existing, discovered) {
@@ -97,32 +115,6 @@ export function mergeVideoArchive(existing, discovered) {
   return [...records.values()].sort((left, right) => (
     new Date(right.published).valueOf() - new Date(left.published).valueOf()
   ));
-}
-
-export function buildYtDlpArgs({
-  channelUrl = CHANNEL_VIDEOS_URL,
-  sleepSeconds = 3,
-  cookiesFile = process.env.YT_DLP_COOKIES_FILE,
-  cookiesFromBrowser = process.env.YT_DLP_COOKIES_FROM_BROWSER,
-} = {}) {
-  if (cookiesFile && cookiesFromBrowser) {
-    throw new Error('choose either cookiesFile or cookiesFromBrowser, not both');
-  }
-
-  const args = [
-    '--dump-single-json',
-    '--skip-download',
-    '--no-flat-playlist',
-    '--no-warnings',
-    '--ignore-errors',
-    '--sleep-requests',
-    String(sleepSeconds),
-  ];
-
-  if (cookiesFile) args.push('--cookies', cookiesFile);
-  if (cookiesFromBrowser) args.push('--cookies-from-browser', cookiesFromBrowser);
-  args.push(channelUrl);
-  return args;
 }
 
 function readArchive(filePath) {
@@ -147,21 +139,58 @@ function numericEnv(name, fallback) {
   return Number.isFinite(value) ? value : fallback;
 }
 
-export async function runYtDlp({
-  executable = process.env.YT_DLP_BIN ?? 'yt-dlp',
-  channelUrl = CHANNEL_VIDEOS_URL,
-  sleepSeconds = Math.max(2, numericEnv('YT_DLP_SLEEP_SECONDS', 3)),
-  cookiesFile = process.env.YT_DLP_COOKIES_FILE,
-  cookiesFromBrowser = process.env.YT_DLP_COOKIES_FROM_BROWSER,
+async function fetchYouTubeApiJson(url, fetchImpl) {
+  const response = await fetchImpl(url);
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error(`YouTube API returned invalid JSON (HTTP ${response.status ?? 'unknown'})`);
+  }
+
+  if (!response.ok) {
+    const message = payload?.error?.message ?? `HTTP ${response.status ?? 'unknown'}`;
+    throw new Error(`YouTube API request failed: ${message}`);
+  }
+
+  return payload;
+}
+
+export async function runYouTubeApi({
+  apiKey = process.env.YOUTUBE_API_KEY,
+  channelId = CHANNEL_ID,
+  apiBaseUrl = YOUTUBE_API_BASE_URL,
+  fetchImpl = globalThis.fetch,
+  pageSize = 50,
 } = {}) {
-  const { stdout } = await execFileAsync(
-    executable,
-    buildYtDlpArgs({ channelUrl, sleepSeconds, cookiesFile, cookiesFromBrowser }),
-    { maxBuffer: 64 * 1024 * 1024 },
+  if (!apiKey) throw new Error('YOUTUBE_API_KEY is required');
+  if (typeof fetchImpl !== 'function') throw new Error('global fetch is unavailable');
+
+  const channelPayload = await fetchYouTubeApiJson(
+    buildYouTubeApiUrl('channels', { part: 'contentDetails', id: channelId }, apiKey, apiBaseUrl),
+    fetchImpl,
   );
-  const records = parseYtDlpOutput(stdout);
-  if (!records.length) throw new Error('yt-dlp returned no public videos');
-  return records;
+  const uploadsPlaylistId = parseYouTubeApiChannel(channelPayload);
+  const records = new Map();
+  let pageToken;
+
+  do {
+    const playlistPayload = await fetchYouTubeApiJson(
+      buildYouTubeApiUrl('playlistItems', {
+        part: 'snippet,contentDetails',
+        playlistId: uploadsPlaylistId,
+        maxResults: Math.min(50, Math.max(1, Math.floor(pageSize))),
+        pageToken,
+      }, apiKey, apiBaseUrl),
+      fetchImpl,
+    );
+    for (const record of parseYouTubeApiItems(playlistPayload)) records.set(record.id, record);
+    pageToken = playlistPayload.nextPageToken;
+  } while (pageToken);
+
+  const discovered = [...records.values()];
+  if (!discovered.length) throw new Error('YouTube API returned no public videos');
+  return discovered;
 }
 
 async function discoverWithRetries(options) {
@@ -170,7 +199,7 @@ async function discoverWithRetries(options) {
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      return await runYtDlp(options);
+      return await runYouTubeApi(options);
     } catch (error) {
       lastError = error;
       if (attempt < attempts && options.retryDelayMs > 0) {
@@ -179,31 +208,31 @@ async function discoverWithRetries(options) {
     }
   }
 
-  throw new Error(`yt-dlp failed after ${attempts} attempts: ${lastError.message}`);
+  throw new Error(`YouTube API failed after ${attempts} attempts: ${lastError.message}`);
 }
 
 export async function refreshArchive({
   root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'),
   archivePath,
   recentPath,
-  executable = process.env.YT_DLP_BIN ?? 'yt-dlp',
-  channelUrl = CHANNEL_VIDEOS_URL,
-  sleepSeconds = Math.max(2, numericEnv('YT_DLP_SLEEP_SECONDS', 3)),
-  cookiesFile = process.env.YT_DLP_COOKIES_FILE,
-  cookiesFromBrowser = process.env.YT_DLP_COOKIES_FROM_BROWSER,
-  retries = Math.max(1, Math.floor(numericEnv('YT_DLP_RETRIES', 3))),
-  retryDelayMs = Math.max(0, numericEnv('YT_DLP_RETRY_DELAY_MS', 2000)),
+  apiKey = process.env.YOUTUBE_API_KEY,
+  channelId = CHANNEL_ID,
+  apiBaseUrl = YOUTUBE_API_BASE_URL,
+  fetchImpl = globalThis.fetch,
+  pageSize = 50,
+  retries = Math.max(1, Math.floor(numericEnv('YOUTUBE_API_RETRIES', 3))),
+  retryDelayMs = Math.max(0, numericEnv('YOUTUBE_API_RETRY_DELAY_MS', 2000)),
   existingUrls = new Set(),
   now = new Date(),
 } = {}) {
   const resolvedArchivePath = archivePath ?? path.join(root, 'data', 'ethan-channel-videos.json');
   const resolvedRecentPath = recentPath ?? path.join(root, 'dist', 'recent-videos.js');
   const discovered = await discoverWithRetries({
-    executable,
-    channelUrl,
-    sleepSeconds,
-    cookiesFile,
-    cookiesFromBrowser,
+    apiKey,
+    channelId,
+    apiBaseUrl,
+    fetchImpl,
+    pageSize,
     retries,
     retryDelayMs,
   });
@@ -258,7 +287,7 @@ export function selectCareerVideos(entries, {
         topic,
         topicLabel,
         sourceLabel: 'Fresh source',
-        sourceNote: 'Auto-discovered from Ethan’s public YouTube channel with yt-dlp; review before publishing.',
+        sourceNote: 'Auto-discovered from Ethan’s public YouTube channel with YouTube Data API; review before publishing.',
         sourceUrl: CHANNEL_URL,
         watchUrl: entry.watchUrl,
         duration: 'Watch on YouTube',
@@ -282,7 +311,7 @@ async function refresh() {
       .map((item) => item.watchUrl),
   );
   const result = await refreshArchive({ root, existingUrls: curatedUrls });
-  console.log(`yt-dlp: ${result.discoveredCount} videos discovered, ${result.archiveCount} cached, ${result.recentCount} relevant videos generated.`);
+  console.log(`YouTube Data API: ${result.discoveredCount} videos discovered, ${result.archiveCount} cached, ${result.recentCount} relevant videos generated.`);
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {

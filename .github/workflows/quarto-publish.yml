@@ -24,34 +24,14 @@ jobs:
         with:
           node-version: 22
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.13'
-
-      - name: Install yt-dlp
-        run: python -m pip install --disable-pip-version-check "yt-dlp==2026.10.26"
-
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Prepare YouTube cookies
-        env:
-          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
-        run: |
-          if [ -z "$YOUTUBE_COOKIES" ]; then
-            echo "YOUTUBE_COOKIES is not configured; trying an unauthenticated refresh."
-            exit 0
-          fi
-          umask 077
-          printf '%s\n' "$YOUTUBE_COOKIES" > "$RUNNER_TEMP/youtube-cookies.txt"
-          echo "YT_DLP_COOKIES_FILE=$RUNNER_TEMP/youtube-cookies.txt" >> "$GITHUB_ENV"
-
       - name: Refresh public career archive
         env:
-          YT_DLP_SLEEP_SECONDS: 3
-          YT_DLP_RETRIES: 3
-          YT_DLP_RETRY_DELAY_MS: 5000
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_API_RETRIES: 3
+          YOUTUBE_API_RETRY_DELAY_MS: 5000
         run: node scripts/refresh_videos.mjs
 
       - name: Commit refreshed video index
