@@ -1,5 +1,24 @@
 export const recentVideos = [
   {
+    "id": "fresh-mUFmR4UNuNU",
+    "title": "“Prompting” Isn’t Leading: The Executive Skills AI Can’t Fake",
+    "deck": "A new public video from Ethan Evans.",
+    "topic": "ai-product-leadership",
+    "topicLabel": "AI-Era Work & Product Leadership",
+    "tags": [
+      "AI & automation"
+    ],
+    "format": "Lesson",
+    "sourceLabel": "Auto-discovered",
+    "sourceNote": "Auto-discovered from Ethan’s public YouTube channel with YouTube Data API; review before publishing.",
+    "sourceUrl": "https://www.youtube.com/channel/UC-BAdkBGjOIlccGLZ3jbLiA",
+    "watchUrl": "https://www.youtube.com/watch?v=mUFmR4UNuNU",
+    "duration": "Watch on YouTube",
+    "accent": "lime",
+    "description": "Apply now: https://maven.com/ethan-evans/cracking-the-c-suite\n\nWhat you will learn:\n1) Why people leadership still wins in the age of AI\n2) Stop faking it: find out where you really stand on AI\n3) Know when to trust AI and when to think for yourself\n\n---------\nAbout Ethan Evans:\nIn Ethan's 15+ years at Amazon, he led global teams of 800+ and invented well-known businesses and products such as Prime Video, Amazon Video, Amazon Appstore, Merch by Amazon, Prime Gaming (formerly Twitch Prime), and Twitch Commerce. \n\n-- 70+ patents. \n-- Reviewed 10,000+ resumes, conducted 2,500+ interviews, and 1,000+ hires. \n-- Was an Amazon Bar Raiser and Bar Raiser Core Leader, responsible for training and maintaining Amazon's group of interview outcome facilitators. \n-- Helped advocate for and draft the Amazon Leadership Principle (LP) “Ownership” — the words, “They never say ‘that’s not my job.’” are Ethan's. \n\nEthan's LinkedIn: https://www.linkedin.com/in/ethanevansvp/\n\nLevel Up Newsletter: https://levelupwithethanevans.substack.com/\n\nLeadership development courses https://maven.com/ethan-evans (live online) and https://ethan-evans.mykajabi.com/ (on-demand)\n\n---------\nAbout Sue Bethanis, Ed.D.:\nSusan J. Bethanis, Ed.D., is the CEO/Founder of Mariposa Leadership, Inc., a 15-person San Francisco- based ﬁrm, which provides executive coaching and design thinking to high-tech leaders.\n\nSue is the author of the well-received business book Leadership Chronicles of a Corporate Sage (Kaplan Publishing, 2004) and hosts the popular show WiseTalk, a monthly leadership forum, and WiseSpace, a Zoom coaching community.\n\nSue regularly facilitates strategy offsites and delivers keynotes on inﬂuence, coaching, and innovation.\n\nSue's LinkedIn: https://www.linkedin.com/in/suebethanis\n\nMariposa Leadership: https://mariposaleadership.com/",
+    "published": "2026-11-04T13:30:35.000Z"
+  },
+  {
     "id": "fresh-j1OytHIZTjM",
     "title": "New Rules of Executive Visibility: Be Seen, Remembered, & Invited",
     "deck": "A new public video from Ethan Evans.",
@@ -2953,24 +2972,5 @@ export const recentVideos = [
     "accent": "lime",
     "description": "We have all heard the saying, “if you want something, you have to work for it”.  Makes sense, but how do you stay motivated, doing something you really don’t want to be doing?  How do you get yourself to stop procrastinating when you have a lack of motivation to solve the problem at hand?  Instead you want relax, enjoy a vacation while work is telling you to stay focused.    \n\nMotivation is tricky.  You have what you must do, what you tell yourself what you should do and then there is what you want to do.  These are not the same for everyone.  Watch Ethan Evans, former VP of Twitch Prime (Prime Gaming) at Amazon; discuss how to find motivation and utilize it to grow your career.\n\nThank you for watching! Remember to subscribe: http://bit.ly/2PipYON\n______________________________________________________________________________\n\nCheck out the community and stay up to date.\n\nTwitch: https://www.twitch.tv/ethanevans\nDiscord: https://discord.gg/jDp8YXM\nEthan’s schedule: https://ethanevans.com/calendar/\n\nTwitter - https://twitter.com/EthanEvansVP\nFacebook - https://www.facebook.com/ethanevansvp\nLinkedIn - https://www.linkedin.com/in/ethan-evans-4461b/\n\nCheck out the website: https://ethanevans.com\n\nFree Resources:\nhttps://ethanevans.com/free-resources/\n\nDrink of the Day:\nRaki (mixed with water live on air): Traditional Turkish spirit, similar to Ouzo and Sambuca",
     "published": "2021-11-10T17:00:19.000Z"
-  },
-  {
-    "id": "fresh-RDEvBAT-kys",
-    "title": "Breaking Rules, Making Exceptions, Good Judgement",
-    "deck": "A new public video from Ethan Evans.",
-    "topic": "decision-strategy",
-    "topicLabel": "Decision-Making & Strategy",
-    "tags": [
-      "Decision-making"
-    ],
-    "format": "Conversation",
-    "sourceLabel": "Auto-discovered",
-    "sourceNote": "Auto-discovered from Ethan’s public YouTube channel with YouTube Data API; review before publishing.",
-    "sourceUrl": "https://www.youtube.com/channel/UC-BAdkBGjOIlccGLZ3jbLiA",
-    "watchUrl": "https://www.youtube.com/watch?v=RDEvBAT-kys",
-    "duration": "Watch on YouTube",
-    "accent": "lime",
-    "description": "We have all been in the situation at work where there is a rule that doesn’t make sense.  The problem with rules is that once they are written down, they start to age and not all rules age well.  This leads to exceptions to the rules and judgements calls needing to be made.  When should an exception to the rule be granted, who should grant that exception, how do you scale exceptions?\n\nAll these lead to questions about why is the rule in the first place.  Watch Ethan Evans, former VP of Twitch Prime (Prime Gaming) at Amazon; discuss how to use good judgement in order to evaluate which rules can be broken.\n\n\nThank you for watching! Remember to subscribe: http://bit.ly/2PipYON\n______________________________________________________________________________\n\nCheck out the community and stay up to date.\n\nTwitch: https://www.twitch.tv/ethanevans\nDiscord: https://discord.gg/jDp8YXM\nEthan’s schedule: https://ethanevans.com/calendar/\n\nTwitter - https://twitter.com/EthanEvansVP\nFacebook - https://www.facebook.com/ethanevansvp\nLinkedIn - https://www.linkedin.com/in/ethan-evans-4461b/\n\nCheck out the website: https://ethanevans.com\n\nFree Resources:\nhttps://ethanevans.com/free-resources/",
-    "published": "2021-11-08T17:00:26.000Z"
   }
 ];
