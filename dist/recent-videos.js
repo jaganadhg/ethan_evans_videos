@@ -2955,22 +2955,5 @@ export const recentVideos = [
     "accent": "teal",
     "description": "It’s no surprise that when you are doing something useful, you feel good. If that’s the case, why is it so hard to find that life of usefulness and connection? Why can’t we just be happy all the time? Simple question with a simple answer; being useful is a great motivator that leads to happiness.\n\nNow how do you become useful while still having fun? Watch Ethan Evans, former VP of Twitch Prime (Prime Gaming) at Amazon; discuss how to find that balance between work and fun that leads to fun work.\n\nThank you for watching! Remember to subscribe: Ethan Evans\n\nCheck out the community and stay up to date.\n\nTwitch: EthanEvans - Twitch\nDiscord: Join the Ethan Evans Community Discord Discord Server!\nEthan’s schedule: Schedule\n\nTwitter - EthanEvansVP\nFacebook - Ethan Evans VP\nLinkedIn - https://www.linkedin.com/in/ethan-evans-4461b/\n\nCheck out the website: Ethan Evans\n\nFree Resources:\nFree Resources",
     "published": "2022-01-14T17:00:01.000Z"
-  },
-  {
-    "id": "fresh-YsBrJTAcQ0U",
-    "title": "How To Find Motivation",
-    "deck": "A new public video from Ethan Evans.",
-    "topic": "personal-effectiveness",
-    "topicLabel": "Personal Effectiveness & Resilience",
-    "tags": [],
-    "format": "Conversation",
-    "sourceLabel": "Auto-discovered",
-    "sourceNote": "Auto-discovered from Ethan’s public YouTube channel with YouTube Data API; review before publishing.",
-    "sourceUrl": "https://www.youtube.com/channel/UC-BAdkBGjOIlccGLZ3jbLiA",
-    "watchUrl": "https://www.youtube.com/watch?v=YsBrJTAcQ0U",
-    "duration": "Watch on YouTube",
-    "accent": "lime",
-    "description": "We have all heard the saying, “if you want something, you have to work for it”.  Makes sense, but how do you stay motivated, doing something you really don’t want to be doing?  How do you get yourself to stop procrastinating when you have a lack of motivation to solve the problem at hand?  Instead you want relax, enjoy a vacation while work is telling you to stay focused.    \n\nMotivation is tricky.  You have what you must do, what you tell yourself what you should do and then there is what you want to do.  These are not the same for everyone.  Watch Ethan Evans, former VP of Twitch Prime (Prime Gaming) at Amazon; discuss how to find motivation and utilize it to grow your career.\n\nThank you for watching! Remember to subscribe: http://bit.ly/2PipYON\n______________________________________________________________________________\n\nCheck out the community and stay up to date.\n\nTwitch: https://www.twitch.tv/ethanevans\nDiscord: https://discord.gg/jDp8YXM\nEthan’s schedule: https://ethanevans.com/calendar/\n\nTwitter - https://twitter.com/EthanEvansVP\nFacebook - https://www.facebook.com/ethanevansvp\nLinkedIn - https://www.linkedin.com/in/ethan-evans-4461b/\n\nCheck out the website: https://ethanevans.com\n\nFree Resources:\nhttps://ethanevans.com/free-resources/\n\nDrink of the Day:\nRaki (mixed with water live on air): Traditional Turkish spirit, similar to Ouzo and Sambuca",
-    "published": "2021-11-10T17:00:19.000Z"
   }
 ];
